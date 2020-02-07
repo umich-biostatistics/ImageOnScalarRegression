@@ -91,15 +91,11 @@ server = function(input, output, session) {
   
   observe({
     req(input$mask_image$datapath > 0)
-    print(input$mask_image$datapath)
     imagepath <<- mdat_path()
     if(length(imagepath) > 0) {
-      print("Image path:")
-      print(imagepath )
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       imgsfiles = dir(imagepath)
       subjID = unlist(strsplit(imgsfiles,suffix))
-      print(imgsfiles)
       updateSelectInput(inputId = 'select_patient_to_explore',
                         choices = subjID, session = session)
     }
@@ -118,9 +114,11 @@ server = function(input, output, session) {
   output$results_image = renderPlot({
     req(input$run)
     suffix = "_2bk-baseline_con_3mm.nii.gz"
+    mask = ifelse(AAL_mask>0,1,0)
+    voxels = which(mask==1,arr.ind = TRUE)
+    colnames(voxels) <- c("x","y","z")
+    z_range = unique(voxels[,3])
     z_show_slices = z_range[seq(10,40,by=2)]
-    print('input dir:')
-    print(paste(imagepath, input$select_patient_to_explore, sep = '/'))
     imgs = readnii(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
