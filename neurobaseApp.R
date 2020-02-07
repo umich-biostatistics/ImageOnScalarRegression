@@ -1,8 +1,11 @@
 
+pkgs = as.character(installed.packages()[,'Package'])
+req.pkgs = c('neurobase', 'shiny', 'shinyFiles')
+sapply(req.pkgs, function(x) { if(!(x %in% pkgs)) install.packages(x) })
+
 library(neurobase)
 library(shiny)
 library(shinyFiles)
-
 
 ui = fluidPage(
   fluidRow(
@@ -18,57 +21,45 @@ ui = fluidPage(
     wellPanel(
       h4(tags$b("Instructions")),
       hr(),
-      
       h4(
         'Set mask image, outcome and clinical variables, and the brain
               image directory. Then, search and select a patient to explore.'
       )
     ),
-    
     fileInput(
       "mask_image",
       "Load mask image",
       multiple = TRUE,
       accept = c(".nii")
     ),
-    
     fileInput(
       "clinical_vars",
       "Load outcome variables and clinical variables",
       multiple = TRUE,
       accept = c(".csv")
     ),
-    
     tags$b('Select the brain images directory'),
     br(),
     shinyDirButton('dir', label = 'Select directory', title = 'Select directory brain images'),
     wellPanel(textOutput("mdat_path_display")),
     br(),
     br(),
-    
     selectInput(
       'select_patient_to_explore',
       label = 'Search and select a patient to explore',
       choices = c()
     ),
-    
-    
     actionButton('run', 'Run')
-    
   ),
-  
   mainPanel(
     verbatimTextOutput('results_summary'),
     plotOutput('results_image')
   )
-  
-  
 )
 
 
 server = function(input, output, session) {
   volumes <- getVolumes()
-  
   shinyDirChoose(
     input,
     'dir',
@@ -118,9 +109,7 @@ server = function(input, output, session) {
   output$results_summary = renderPrint({
     req(input$run)
     suffix = "_2bk-baseline_con_3mm.nii.gz"
-    
     subjID = unlist(strsplit(input$select_patient_to_explore,suffix))
-    
     X_names = c("Female","p","g")
     X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
     print(summary(X))
@@ -135,14 +124,6 @@ server = function(input, output, session) {
     imgs = readnii(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
-  
 }
 
 shinyApp(ui = ui, server = server)
-
-
-
-
-
-
-
