@@ -8,6 +8,7 @@ library(shiny)
 library(shinyFiles)
 
 regr_variables_ = c()
+select_var = c()
 
 ui = fluidPage(
   fluidRow(
@@ -72,8 +73,9 @@ ui = fluidPage(
     hr(),
     verbatimTextOutput('results_summary'),
     plotOutput('results_image'),
-    h3('Regression results for the selected patient by variable of interest:'),
-    hr()
+    h3('Regression results by variable of interest:'),
+    hr(),
+    plotOutput('model_results_image')
   )
 )
 
@@ -116,6 +118,7 @@ server = function(input, output, session) {
   })
   
   regr_selections = reactive({
+    req(input$add_regr_variable)
     input$add_regr_variable
     isolate(regr_variables_ <<- c(regr_variables_, input$select_regr_vars))
     regr_variables_
@@ -126,13 +129,82 @@ server = function(input, output, session) {
   })
   
   model_fit_results = reactive({
+    req(input$run_regression)
+    input$run_regression
+    print('tripped')
+      suffix = "_2bk-baseline_con_3mm.nii.gz"
+      mask = ifelse(AAL_mask>0,1,0)
+      voxels = which(mask==1,arr.ind = TRUE)
+      colnames(voxels) <- c("x","y","z")
+      z_range = unique(voxels[,3])
+      z_show_slices = z_range[seq(10,40,by=2)]
+      print('tripped 2')
+      imgs = readnii(paste(imagepath, paste0(isolate(input$select_patient_to_explore), suffix), sep = '/'))
+      imgsfiles = dir(imagepath)
+      subjID = unlist(strsplit(imgsfiles,suffix))
+      X_names = c("Female","p","g")
+      X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
+      
+      matX = NULL
+      nm_X = names(X)
+      nms = NULL
+      for(i in 1:ncol(X)){
+        if(is.factor(X[[i]])){
+          levels_X = levels(X[[i]])
+          if(length(levels_X)>1){
+            for(j in 2:length(levels_X)){
+              matX = cbind(matX,ifelse(as.character(X[[i]])==levels_X[j],1,0))
+              nms = c(nms,paste(nm_X[i],levels_X[j],sep="_"))
+            }
+          }
+        } else{
+          matX = cbind(matX,X[[j]])
+          nms = c(nms,nm_X[i])
+        }
+      }
+      
+      imgdat = matrix(NA, nrow=length(imgsfiles),ncol=sum(mask==1))
+      for(i in 1:length(imgsfiles)){
+        img = readnii(file.path(imagepath,imgsfiles[i]))
+        img[] = ifelse(is.nan(img[]),0,img[])
+        img[] = ifelse(mask[]==1,img[],NaN)
+        imgdat[i,] = img[mask[]==1]
+      }
+      
+      sigma2_beta = 0.01
+      XtX = crossprod(matX)
+      XtY = crossprod(matX,imgdat)
+      beta0 = solve(XtX+sigma2_beta*diag(nrow(XtX)),XtY)
+      beta = beta0
+      for(j in 1:ncol(beta)){
+        beta[,j] = ifelse(beta0[,j]>quantile(abs(beta0[,j]),prob=0.95),beta0[,j],0)
+      }
+      
+      img_temp = readnii(file.path(imagepath,imgsfiles[1]))
+      img_betas = list()
+      for(j in 1:nrow(beta)){
+        img_betas[[j]] = img_temp
+        img_betas[[j]][which(mask[]==1)] = beta[j,]
+        img_betas[[j]][which(mask[]!=1)] = NaN
+      }
+      names(img_betas) = nms
+      
+      img_cols <- colorRampPalette(c("blue","yellow","red"))(256)
+      #show results
+      select_var <<- nms[1]
+      slices_to_show = c(15,25,35,45)
+      plane = "coronal" #"coronal", "sagittal"
+      
+      return(
+      image(img_betas[[select_var]],z = slices_to_show,plot.type="single",
+            col=img_cols, plane = plane,
+            main=list(select_var,col="white"),mar = rep(1, 4)) )
     
-    # return list with image results and text results?
   })
   
-  output$print_regr_variables = renderText({
-    regr_selections()
-  })
+  output$model_results_image = renderPlot({
+    model_fit_results()
+  }, bg = 'black', main=list(select_var, col="white"), mar = rep(1, 4))
   
   
   observe({
