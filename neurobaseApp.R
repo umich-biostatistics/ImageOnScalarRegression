@@ -7,6 +7,8 @@ library(neurobase)
 library(shiny)
 library(shinyFiles)
 
+regr_variables_ = c()
+
 ui = fluidPage(
   fluidRow(
     headerPanel(
@@ -49,11 +51,29 @@ ui = fluidPage(
       label = 'Search and select a patient to explore',
       choices = c()
     ),
-    actionButton('run', 'Run')
+    actionButton('run', 'Run'),
+    hr(),
+    wellPanel(
+      h4(tags$b("Regression Analysis")),
+      hr(),
+      h4(
+        'Select predictors to use in the regression analysis with ______, fit the
+        regression model and preview results by variable name using _______.'
+      )
+    ),
+    selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
+                       choices = c()),
+    actionButton('add_regr_variable', 'Add variable to model'),
+    textOutput('print_regr_variables'),
+    actionButton('run_regression', 'Fit model')
   ),
   mainPanel(
+    h3('Summary of results for the selected patient:'),
+    hr(),
     verbatimTextOutput('results_summary'),
-    plotOutput('results_image')
+    plotOutput('results_image'),
+    h3('Regression results for the selected patient by variable of interest:'),
+    hr()
   )
 )
 
@@ -87,7 +107,33 @@ server = function(input, output, session) {
   
   observeEvent(input$clinical_vars, {
     phenos_dat <<- read.csv(input$clinical_vars$datapath)
+    updateSelectInput(
+      session,
+      'select_regr_vars',
+      label = 'Select predictor variables for regression model:',
+      choices = colnames(phenos_dat)
+    )
   })
+  
+  regr_selections = reactive({
+    input$add_regr_variable
+    isolate(regr_variables_ <<- c(regr_variables_, input$select_regr_vars))
+    regr_variables_
+  })
+  
+  output$print_regr_variables = renderText({
+    toString(regr_selections())
+  })
+  
+  model_fit_results = reactive({
+    
+    # return list with image results and text results?
+  })
+  
+  output$print_regr_variables = renderText({
+    regr_selections()
+  })
+  
   
   observe({
     req(input$mask_image$datapath > 0)
