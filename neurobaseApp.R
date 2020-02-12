@@ -36,7 +36,11 @@ ui = fluidPage(
               image directory. Then, search and select a patient to explore.'
       )
     ),
-    fileInput(
+    wellPanel(
+      h4(tags$b("Load data")),
+      h5('Load a mask image data set, outcome and clinical variables data, 
+         and select a brain image directory.'),
+      fileInput(
       "mask_image",
       "Load mask image",
       multiple = TRUE,
@@ -48,41 +52,49 @@ ui = fluidPage(
       multiple = TRUE,
       accept = c(".csv")
     ),
-    tags$b('Select the brain images directory'),
+    tags$b('Select the brain image directory'),
     br(),
     shinyDirButton('dir', label = 'Select directory', title = 'Select directory brain images'),
-    wellPanel(textOutput("mdat_path_display")),
+    wellPanel(textOutput("mdat_path_display"))
+    ),
     br(),
-    br(),
-    selectInput(
+    wellPanel(
+      h4(tags$b("Patient summary")),
+      selectInput(
       'select_patient_to_explore',
       label = 'Search and select a patient to explore',
       choices = c()
     ),
-    actionButton('run', 'Run'),
+    actionButton('run', 'Run')
+    )
+    ,
     hr(),
     wellPanel(
       h4(tags$b("Regression Analysis")),
       hr(),
-      h4(
-        'Select predictors to use in the regression analysis with ______, fit the
-        regression model and preview results by variable name using _______.'
-      )
-    ),
-    selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
+      h5(
+        'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
+        and clicking `Add variable to model` for each selection. Then click `fit model` to run the 
+        regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to 
+        change the parameter displayed.'
+      ),
+      selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
                        choices = c()),
     actionButton('add_regr_variable', 'Add variable to model'),
     textOutput('print_regr_variables'),
+    hr(),
     actionButton('run_regression', 'Fit model'),
     selectInput('select_param_view', label = 'Select variable on which to view brain images:',
                 choices = c())
+    )
+    
   ),
   mainPanel(
-    h3('Summary of results for the selected patient:'),
+    h4('Summary for the selected patient:'),
     hr(),
     verbatimTextOutput('results_summary'),
     plotOutput('results_image'),
-    h3('Regression results by variable of interest:'),
+    h4('Regression results by variable of interest:'),
     hr(),
     plotOutput('model_results_image')
   )
@@ -150,7 +162,7 @@ server = function(input, output, session) {
       imgsfiles = dir(imagepath)
       subjID = unlist(strsplit(imgsfiles,suffix))
       X_names = regr_variables_
-      X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
+      X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names, drop = FALSE]
       
       matX = NULL
       nm_X = names(X)
@@ -204,6 +216,15 @@ server = function(input, output, session) {
       
       updateSelectInput(session = session, 'select_param_view', choices = nms)
       
+      output$results_summary = renderPrint({
+        #req(input$run)
+        suffix = "_2bk-baseline_con_3mm.nii.gz"
+        subjID = unlist(strsplit(imgsfiles,suffix))
+        X_names = regr_variables_
+        X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names, drop = FALSE]
+        print(summary(X))
+      })
+      
       # return(
       # image(img_betas[[select_var]],z = slices_to_show,plot.type="single",
       #       col=img_cols, plane = plane,
@@ -255,14 +276,14 @@ server = function(input, output, session) {
     return()
   })
   
-  output$results_summary = renderPrint({
-    req(input$run)
-    suffix = "_2bk-baseline_con_3mm.nii.gz"
-    subjID = unlist(strsplit(input$select_patient_to_explore,suffix))
-    X_names = c("Female","p","g")
-    X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
-    print(summary(X))
-  })
+  # output$results_summary = renderPrint({
+  #   req(input$run)
+  #   suffix = "_2bk-baseline_con_3mm.nii.gz"
+  #   subjID = unlist(strsplit(input$select_patient_to_explore,suffix))
+  #   X_names = c("Female","p","g")
+  #   X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
+  #   print(summary(X))
+  # })
   
   output$results_image = renderPlot({
     req(input$run)
