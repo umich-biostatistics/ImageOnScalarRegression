@@ -1,10 +1,10 @@
 
-pkgs = as.character(installed.packages()[, 'Package'])
-req.pkgs = c('neurobase', 'shiny', 'shinyFiles', 'tidyverse')
-sapply(req.pkgs, function(x) {
-  if (!(x %in% pkgs))
-    install.packages(x)
-})
+# pkgs = as.character(installed.packages()[, 'Package'])
+# req.pkgs = c('neurobase', 'shiny', 'shinyFiles', 'tidyverse')
+# sapply(req.pkgs, function(x) {
+#   if (!(x %in% pkgs))
+#     install.packages(x)
+# })
 
 library(neurobase)
 library(shiny)
