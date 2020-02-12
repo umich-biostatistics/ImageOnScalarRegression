@@ -1,11 +1,12 @@
 
 pkgs = as.character(installed.packages()[,'Package'])
-req.pkgs = c('neurobase', 'shiny', 'shinyFiles')
+req.pkgs = c('neurobase', 'shiny', 'shinyFiles', 'tidyverse')
 sapply(req.pkgs, function(x) { if(!(x %in% pkgs)) install.packages(x) })
 
 library(neurobase)
 library(shiny)
 library(shinyFiles)
+library(tidyverse)
 
 regr_variables_ = c()
 select_var = c()
@@ -139,14 +140,12 @@ server = function(input, output, session) {
   model_fit_results = reactive({
     req(input$run_regression)
     input$run_regression
-    print('tripped')
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       mask = ifelse(AAL_mask>0,1,0)
       voxels = which(mask==1,arr.ind = TRUE)
       colnames(voxels) <- c("x","y","z")
       z_range = unique(voxels[,3])
       z_show_slices = z_range[seq(10,40,by=2)]
-      print('tripped 2')
       imgs = readnii(paste(imagepath, paste0(isolate(input$select_patient_to_explore), suffix), sep = '/'))
       imgsfiles = dir(imagepath)
       subjID = unlist(strsplit(imgsfiles,suffix))
@@ -200,7 +199,6 @@ server = function(input, output, session) {
       img_cols <<- colorRampPalette(c("blue","yellow","red"))(256)
       #show results
       select_var <<- nms[1]
-      print(nms)
       slices_to_show <<- c(15,25,35,45)
       plane <<- "coronal" #"coronal", "sagittal"
       
@@ -215,23 +213,14 @@ server = function(input, output, session) {
   
   output$model_results_image = renderPlot({
     model_fit_results()
-    #req()
-    #print(new_view_variable())
-    # image(img_betas[[new_view_variable()]], z = slices_to_show, plot.type="single",
-    #       col=img_cols, plane = plane,
-    #       main=list(select_var,col="white"), mar = rep(1, 4))
     new_view_var_ = new_view_variable()
     if(input$select_param_view %>% str_length == 0) {
-      print('original variable:')
-      print(select_var)
       return(
         image(img_betas[[select_var]], z = slices_to_show, plot.type="single",
               col=img_cols, plane = plane,
               main=list(select_var,col="white"), mar = rep(1, 4))
       )
     } else {
-      print('updated variable:')
-      print(new_view_variable())
       return(
       image(img_betas[[new_view_variable()]], z = slices_to_show, plot.type="single",
           col=img_cols, plane = plane,
@@ -243,7 +232,6 @@ server = function(input, output, session) {
   }, bg = 'black', main=list(select_var, col="white"), mar = rep(1, 4))
   
   new_view_variable = reactive({
-    print("ABCD")
     req(input$select_param_view %>% str_length > 0)
     if(is.null(input$select_param_view) & !(is_empty(select_var))) {
       return(select_var)
