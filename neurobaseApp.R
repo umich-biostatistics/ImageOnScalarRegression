@@ -10,6 +10,12 @@ library(shinyFiles)
 regr_variables_ = c()
 select_var = c()
 
+img_betas = list()
+slices_to_show = c()
+img_cols = c()
+plane = c()
+
+
 ui = fluidPage(
   fluidRow(
     headerPanel(
@@ -66,7 +72,9 @@ ui = fluidPage(
                        choices = c()),
     actionButton('add_regr_variable', 'Add variable to model'),
     textOutput('print_regr_variables'),
-    actionButton('run_regression', 'Fit model')
+    actionButton('run_regression', 'Fit model'),
+    selectInput('select_param_view', label = 'Select variable on which to view brain images:',
+                choices = c())
   ),
   mainPanel(
     h3('Summary of results for the selected patient:'),
@@ -142,7 +150,7 @@ server = function(input, output, session) {
       imgs = readnii(paste(imagepath, paste0(isolate(input$select_patient_to_explore), suffix), sep = '/'))
       imgsfiles = dir(imagepath)
       subjID = unlist(strsplit(imgsfiles,suffix))
-      X_names = c("Female","p","g")
+      X_names = regr_variables_
       X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names]
       
       matX = NULL
@@ -158,7 +166,7 @@ server = function(input, output, session) {
             }
           }
         } else{
-          matX = cbind(matX,X[[j]])
+          matX = cbind(matX,X[[i]])
           nms = c(nms,nm_X[i])
         }
       }
@@ -181,31 +189,70 @@ server = function(input, output, session) {
       }
       
       img_temp = readnii(file.path(imagepath,imgsfiles[1]))
-      img_betas = list()
+      #img_betas = list()
       for(j in 1:nrow(beta)){
-        img_betas[[j]] = img_temp
-        img_betas[[j]][which(mask[]==1)] = beta[j,]
-        img_betas[[j]][which(mask[]!=1)] = NaN
+        img_betas[[j]] <<- img_temp
+        img_betas[[j]][which(mask[]==1)] <<- beta[j,]
+        img_betas[[j]][which(mask[]!=1)] <<- NaN
       }
-      names(img_betas) = nms
+      names(img_betas) <<- nms
       
-      img_cols <- colorRampPalette(c("blue","yellow","red"))(256)
+      img_cols <<- colorRampPalette(c("blue","yellow","red"))(256)
       #show results
       select_var <<- nms[1]
-      slices_to_show = c(15,25,35,45)
-      plane = "coronal" #"coronal", "sagittal"
+      print(nms)
+      slices_to_show <<- c(15,25,35,45)
+      plane <<- "coronal" #"coronal", "sagittal"
       
-      return(
-      image(img_betas[[select_var]],z = slices_to_show,plot.type="single",
-            col=img_cols, plane = plane,
-            main=list(select_var,col="white"),mar = rep(1, 4)) )
+      updateSelectInput(session = session, 'select_param_view', choices = nms)
+      
+      # return(
+      # image(img_betas[[select_var]],z = slices_to_show,plot.type="single",
+      #       col=img_cols, plane = plane,
+      #       main=list(select_var,col="white"),mar = rep(1, 4)) )
     
   })
   
   output$model_results_image = renderPlot({
     model_fit_results()
+    #req()
+    #print(new_view_variable())
+    # image(img_betas[[new_view_variable()]], z = slices_to_show, plot.type="single",
+    #       col=img_cols, plane = plane,
+    #       main=list(select_var,col="white"), mar = rep(1, 4))
+    new_view_var_ = new_view_variable()
+    if(input$select_param_view %>% str_length == 0) {
+      print('original variable:')
+      print(select_var)
+      return(
+        image(img_betas[[select_var]], z = slices_to_show, plot.type="single",
+              col=img_cols, plane = plane,
+              main=list(select_var,col="white"), mar = rep(1, 4))
+      )
+    } else {
+      print('updated variable:')
+      print(new_view_variable())
+      return(
+      image(img_betas[[new_view_variable()]], z = slices_to_show, plot.type="single",
+          col=img_cols, plane = plane,
+          main=list(select_var,col="white"), mar = rep(1, 4))
+    )
+    }
+    
+    
   }, bg = 'black', main=list(select_var, col="white"), mar = rep(1, 4))
   
+  new_view_variable = reactive({
+    print("ABCD")
+    req(input$select_param_view %>% str_length > 0)
+    if(is.null(input$select_param_view) & !(is_empty(select_var))) {
+      return(select_var)
+    } else if (!is.null(input$select_param_view)) {
+      return(input$select_param_view)
+    } 
+    #req(select_param_view$input)
+    #return(select_param_view$input)
+  })
   
   observe({
     req(input$mask_image$datapath > 0)
