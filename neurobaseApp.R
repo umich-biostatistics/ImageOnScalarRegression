@@ -92,11 +92,11 @@ ui = fluidPage(
   
   ),
   mainPanel(
-    h4('Summary for the selected patient:'),
+    h4('Data summary:'),
     hr(),
     verbatimTextOutput('results_summary'),
     plotOutput('results_image'),
-    h4('Regression results by variable of interest:'),
+    h4('Regression results:'),
     hr(),
     plotOutput('model_results_image')
   )
