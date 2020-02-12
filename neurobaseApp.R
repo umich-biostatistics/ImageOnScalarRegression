@@ -22,7 +22,7 @@ plane = c()
 
 ui = fluidPage(
   fluidRow(headerPanel(
-    h3("Neurobase Viewer", style = "color: #02169B; font-weight: bold;")
+    h3("Image on Scalar Regression", style = "color: #02169B; font-weight: bold;")
   ),
   div(style = "height:72px; background-color: #F1F1F1;")),
   br(),
@@ -33,7 +33,7 @@ ui = fluidPage(
     hr(),
     h4(
       'Set mask image, outcome and clinical variables, and the brain
-              image directory. Then, search and select a patient to explore.'
+              image directory. Then, search and select a subject to explore.'
     )
   ), 
   wellPanel(
@@ -61,10 +61,10 @@ ui = fluidPage(
   ),
   br(),
   wellPanel(
-    h4(tags$b("Patient summary")),
+    h4(tags$b("Subject summary")),
     selectInput(
       'select_patient_to_explore',
-      label = 'Search and select a patient to explore',
+      label = 'Search and select a subject to explore',
       choices = c()
     ),
     actionButton('run', 'Run')
@@ -72,7 +72,7 @@ ui = fluidPage(
   ,
   hr(),
   wellPanel(
-    h4(tags$b("Regression Analysis")),
+    h4(tags$b("Image on Scalar Regression Analysis")),
     hr(),
     h5(
       'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
@@ -96,7 +96,7 @@ ui = fluidPage(
     hr(),
     verbatimTextOutput('results_summary'),
     plotOutput('results_image'),
-    h4('Regression results:'),
+    h4('Image on Scalar Regression results:'),
     hr(),
     plotOutput('model_results_image')
   )
