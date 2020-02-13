@@ -265,9 +265,9 @@ server = function(input, output, session) {
           z = slices_to_show,
           plot.type = "single",
           col = img_cols,
-          plane = plane,
-          main = list(select_var, col = "white"),
-          mar = rep(1, 4)
+          plane = plane
+          # main = list(select_var, col = "white"),
+          # mar = rep(1, 4)
         )
       )
     } else {
@@ -277,15 +277,15 @@ server = function(input, output, session) {
           z = slices_to_show,
           plot.type = "single",
           col = img_cols,
-          plane = plane,
-          main = list(select_var, col = "white"),
-          mar = rep(1, 4)
+          plane = plane
+          # main = list(select_var, col = "white"),
+          # mar = rep(1, 4)
         )
       )
     }
     
     
-  }, bg = 'black', main = list(select_var, col = "white"), mar = rep(1, 4))
+  }, bg = 'black') #, main = list(select_var, col = "white"), mar = rep(1, 4))
   
   new_view_variable = reactive({
     req(input$select_param_view %>% str_length > 0)
