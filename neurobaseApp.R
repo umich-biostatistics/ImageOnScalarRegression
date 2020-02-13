@@ -10,6 +10,7 @@ library(neurobase)
 library(shiny)
 library(shinyFiles)
 library(tidyverse)
+library(stringi)
 
 regr_variables_ = c()
 select_var = c()
@@ -19,6 +20,10 @@ slices_to_show = c()
 img_cols = c()
 plane = c()
 
+paths_to_nii_ = c()
+
+
+paths_temp = c() # path up to the nii files
 
 ui = fluidPage(
   fluidRow(headerPanel(
@@ -57,7 +62,14 @@ ui = fluidPage(
     tags$b('Select the brain image directory'),
     br(),
     shinyDirButton('dir', label = 'Select directory', title = 'Select directory brain images'),
-    wellPanel(textOutput("mdat_path_display"))
+    fileInput('dir2',
+              "Choose directory NEW",
+              multiple = TRUE,
+              accept = c()
+    ),
+    wellPanel(textOutput("mdat_path_display")),
+    textInput('path_to_nii', 'Enter path to ___', width = 1000),
+    actionButton('run_path_nii', 'Run path')
   ),
   br(),
   wellPanel(
@@ -112,7 +124,7 @@ server = function(input, output, session) {
   mdat_path <- reactive({
     return(parseDirPath(volumes, input$dir))
   })
-  
+
   output$mdat_path_display = renderText({
     req(input$dir)
     dir_ = unlist(input$dir)
@@ -122,12 +134,24 @@ server = function(input, output, session) {
     return(paste0(dir_new_, sep = '/'))
   })
   
+  observeEvent(input$dir2, {
+    #print(paste(getwd(), input$dir2$name, sep = '/'))
+    dir.create(paste(getwd(), 'temp_fls', sep = '/'))
+    paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2$name, sep = '/')
+    print("ABCEDF:")
+    print(paths_to_nii_)
+    file.copy(input$dir2$datapath, paths_to_nii_)
+    patient_list_update()
+    #f = readnii(input$dir2$datapath[1])
+  })
+  
   observeEvent(input$mask_image, {
     AAL_mask <<- readnii(input$mask_image$datapath)
   })
   
   observeEvent(input$clinical_vars, {
     phenos_dat <<- read.csv(input$clinical_vars$datapath)
+    print(input$clinical_vars$datapath)
     updateSelectInput(session,
                       'select_regr_vars',
                       label = 'Select predictor variables for regression model:',
@@ -155,9 +179,9 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    imgs = readnii(paste(imagepath, paste0(
-      isolate(input$select_patient_to_explore), suffix
-    ), sep = '/'))
+    print("imagepath-----------------------------------------------------------------------")
+    print(imagepath)
+    imgs = readnii(paste(imagepath, paste0(isolate(input$select_patient_to_explore), suffix), sep = '/'))
     imgsfiles = dir(imagepath)
     subjID = unlist(strsplit(imgsfiles, suffix))
     X_names = regr_variables_
@@ -183,6 +207,9 @@ server = function(input, output, session) {
     
     imgdat = matrix(NA, nrow = length(imgsfiles), ncol = sum(mask == 1))
     for (i in 1:length(imgsfiles)) {
+      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:::::")
+      print(imagepath)
+      print(imgsfiles[i])
       img = readnii(file.path(imagepath, imgsfiles[i]))
       img[] = ifelse(is.nan(img[]), 0, img[])
       img[] = ifelse(mask[] == 1, img[], NaN)
@@ -270,12 +297,25 @@ server = function(input, output, session) {
     }
   })
   
-  observe({
-    req(input$mask_image$datapath > 0)
-    imagepath <<- mdat_path()
+  patient_list_update = reactive({
+    #req(input$mask_image$datapath > 0)
+    print('test this::::')
+    print(length(paths_to_nii_))
+    req(length(paths_to_nii_) > 0)
+    input$dir2$datapath
+    input$mask_image$datapath
+    #imagepath <<- mdat_path()
+    paths_temp = unlist(str_split(paths_to_nii_[1], pattern = '/'))
+    print('zzzzzzzzssssssss:')
+    print(paths_temp)
+    paths_temp = paths_temp[-length(paths_temp)]
+    paths_temp <<- stri_paste(paths_temp, collapse = '/')
+    imagepath <<- paths_temp
+    print('imagepath ------------------------------------------------------------------------------------')
+    print(stri_paste(imagepath, collapse = '/'))
     if (length(imagepath) > 0) {
       suffix = "_2bk-baseline_con_3mm.nii.gz"
-      imgsfiles = dir(imagepath)
+      imgsfiles = dir(stri_paste(imagepath, collapse = '/'))
       subjID = unlist(strsplit(imgsfiles, suffix))
       updateSelectInput(inputId = 'select_patient_to_explore',
                         choices = subjID,
@@ -292,11 +332,13 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    imgs = readnii(paste(
-      imagepath,
-      paste0(input$select_patient_to_explore, suffix),
-      sep = '/'
-    ))
+    print('BIG debug')
+    print("IMAGE PATH:")
+    print(imagepath)
+    imagepath <<- stri_paste(imagepath, collapse = '/')
+    print("NEXT")
+    print(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
+    imgs = readnii(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
 }
