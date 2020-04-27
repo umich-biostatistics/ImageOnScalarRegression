@@ -22,7 +22,7 @@ img_cols = c()
 plane = c()
 
 paths_to_nii_ = c()
-
+paths_to_nii_demo_ = c()
 
 paths_temp = c() # path up to the nii files
 
@@ -116,7 +116,7 @@ ui = fluidPage(
                  hr(),
                  plotOutput('model_results_image'),
                  hr()
-               ),
+               )
              ) 
              ),
     tabPanel('Demo',
@@ -188,13 +188,19 @@ ui = fluidPage(
              
              ),
              mainPanel(
-               h4('Data summary:', style = 'text-decoration: underline'),
-               hr(),
-               verbatimTextOutput('results_summary_demo'),
-               plotOutput('results_image_demo'),
-               h4('Image on Scalar Regression results:'),
-               hr(),
-               plotOutput('model_results_image_demo')
+               wellPanel(style = 'background: #fcfcfc',
+                         h4(tags$b('Data summary'), style = 'text-decoration: underline'),
+                         hr(),
+                         verbatimTextOutput('results_summary_demo'),
+                         plotOutput('results_image_demo'),
+                         hr()
+               ),
+               wellPanel(style = 'background: #fcfcfc',
+                         h4(tags$b('Image on Scalar Regression results'), style = 'text-decoration: underline'),
+                         hr(),
+                         plotOutput('model_results_image_demo'),
+                         hr()
+               )
              )
           ),
     tabPanel('About'),
@@ -236,11 +242,11 @@ server = function(input, output, session) {
   
   observeEvent(input$dir2_demo, {
     #print(paste(getwd(), input$dir2$name, sep = '/'))
-    dir.create(paste(getwd(), 'temp_fls', sep = '/'))
-    paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2_demo$name, sep = '/')
+    dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
+    paths_to_nii_demo_ <<- paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
     #print("ABCEDF:")
     #print(paths_to_nii_)
-    file.copy(input$dir2_demo$datapath, paths_to_nii_)
+    file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
     patient_list_update_demo()
     #f = readnii(input$dir2$datapath[1])
   })
@@ -389,7 +395,7 @@ server = function(input, output, session) {
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
     #print("imagepath-----------------------------------------------------------------------")
-    #print(imagepath)
+    #print(imagepath_demo)
     imgs = readnii(paste(imagepath_demo, paste0(isolate(input$select_patient_to_explore_demo), suffix), sep = '/'))
     imgsfiles = dir(imagepath_demo)
     subjID = unlist(strsplit(imgsfiles, suffix))
@@ -515,7 +521,7 @@ server = function(input, output, session) {
     } else {
       return(
         image(
-          img_betas[[new_view_variable()]],
+          img_betas[[new_view_variable_demo()]],
           z = slices_to_show,
           plot.type = "single",
           col = img_cols,
@@ -585,11 +591,11 @@ server = function(input, output, session) {
     #req(input$mask_image$datapath > 0)
     #print('test this::::')
     #print(length(paths_to_nii_))
-    req(length(paths_to_nii_) > 0)
+    req(length(paths_to_nii_demo_) > 0)
     input$dir2_demo$datapath
     input$mask_image_demo$datapath
     #imagepath <<- mdat_path()
-    paths_temp = unlist(str_split(paths_to_nii_[1], pattern = '/'))
+    paths_temp = unlist(str_split(paths_to_nii_demo_[1], pattern = '/'))
     #print('zzzzzzzzssssssss:')
     #print(paths_temp)
     paths_temp = paths_temp[-length(paths_temp)]
