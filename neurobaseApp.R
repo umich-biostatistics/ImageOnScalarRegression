@@ -13,6 +13,7 @@ library(tidyverse)
 library(stringi)
 
 regr_variables_ = c()
+regr_variables_demo_ = c()
 select_var = c()
 
 img_betas = list()
@@ -27,85 +28,173 @@ paths_temp = c() # path up to the nii files
 
 ui = fluidPage(
   fluidRow(headerPanel(
-    h3("Image on Scalar Regression", style = "color: #02169B; font-weight: bold;")
+    h3("Image on Scalar Regression", style = "color: #02169B; font-weight: normal; border: 1px")
   ),
-  div(style = "height:72px; background-color: #F1F1F1;")),
-  br(),
-  br(),
-  br(),
-  sidebarPanel(wellPanel(
-    h4(tags$b("Instructions")),
-    hr(),
-    h4(
-      'Set mask image, outcome and clinical variables, and the brain
+  div(style = "height:55px; background-color: #F1F1F1; border-bottom: groove; border-color: #02169B; border-width: 3px;")),
+  tags$style(HTML(".tabbable > .nav > li > a                  {background-color: #F1F1F1;  color:black}
+                  .tabbable > .nav > li[class=active]    > a {background-color: white; color:black}")),
+  tabsetPanel(
+    type = 'tabs',
+    tabPanel('Home', 
+             br(),
+             br(),
+             br(),
+             sidebarPanel(wellPanel(
+               h4(tags$b("Instructions")),
+               hr(),
+               h4(
+                 'Set mask image, outcome and clinical variables, and the brain
               image directory. Then, search and select a subject to explore.'
-    )
-  ), 
-  wellPanel(
-    h4(tags$b("Load data")),
-    h5(
-      'Load a mask image data set, outcome and clinical variables data,
+               )
+             ), 
+             wellPanel(
+               h4(tags$b("Load data")),
+               h5(
+                 'Load a mask image data set, outcome and clinical variables data,
          and select a brain image directory.'
-    ),
-    fileInput(
-      "mask_image",
-      "Load mask image",
-      multiple = TRUE,
-      accept = c(".nii")
-    ),
-    fileInput(
-      "clinical_vars",
-      "Load outcome variables and clinical variables",
-      multiple = TRUE,
-      accept = c(".csv")
-    ),
-    fileInput('dir2',
-              "Choose directory",
-              multiple = TRUE,
-              accept = c()
-    )
-  ),
-  br(),
-  wellPanel(
-    h4(tags$b("Subject summary")),
-    selectInput(
-      'select_patient_to_explore',
-      label = 'Search and select a subject to explore',
-      choices = c()
-    ),
-    actionButton('run', 'Run')
-  )
-  ,
-  hr(),
-  wellPanel(
-    h4(tags$b("Image on Scalar Regression Analysis")),
-    hr(),
-    h5(
-      'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
+               ),
+               fileInput(
+                 "mask_image",
+                 "Load mask image",
+                 multiple = TRUE,
+                 accept = c(".nii")
+               ),
+               fileInput(
+                 "clinical_vars",
+                 "Load outcome variables and clinical variables",
+                 multiple = TRUE,
+                 accept = c(".csv")
+               ),
+               fileInput('dir2',
+                         "Choose directory",
+                         multiple = TRUE,
+                         accept = c()
+               )
+             ),
+             br(),
+             wellPanel(
+               h4(tags$b("Subject summary")),
+               selectInput(
+                 'select_patient_to_explore',
+                 label = 'Search and select a subject to explore',
+                 choices = c()
+               ),
+               actionButton('run', 'Run')
+             )
+             ,
+             hr(),
+             wellPanel(
+               h4(tags$b("Image on Scalar Regression Analysis")),
+               hr(),
+               h5(
+                 'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
         and clicking `Add variable to model` for each selection. Then click `fit model` to run the
         regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
         change the parameter displayed.'
-    ),
-    selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
-                choices = c()),
-    actionButton('add_regr_variable', 'Add variable to model'),
-    textOutput('print_regr_variables'),
-    hr(),
-    actionButton('run_regression', 'Fit model'),
-    selectInput('select_param_view', label = 'Select variable on which to view brain images:',
-                choices = c())
-  )
-  
+               ),
+               selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
+                           choices = c()),
+               actionButton('add_regr_variable', 'Add variable to model'),
+               textOutput('print_regr_variables'),
+               hr(),
+               actionButton('run_regression', 'Fit model'),
+               selectInput('select_param_view', label = 'Select variable on which to view brain images:',
+                           choices = c())
+             )
+             
+             ),
+             mainPanel(
+               h4('Data summary:'),
+               hr(),
+               verbatimTextOutput('results_summary'),
+               plotOutput('results_image'),
+               h4('Image on Scalar Regression results:'),
+               hr(),
+               plotOutput('model_results_image')
+             ) 
+             ),
+    tabPanel('Demo',
+             br(),
+             br(),
+             br(),
+             sidebarPanel(wellPanel(
+               h4(tags$b("Instructions")),
+               hr(),
+               h4(
+                 'Set mask image, outcome and clinical variables, and the brain
+              image directory. Then, search and select a subject to explore.'
+               )
+             ), 
+             wellPanel(
+               h4(tags$b("Load data")),
+               h5(
+                 'Load a mask image data set, outcome and clinical variables data,
+         and select a brain image directory.'
+               ),
+               fileInput(
+                 "mask_image_demo",
+                 "Load mask image",
+                 multiple = TRUE,
+                 accept = c(".nii")
+               ),
+               fileInput(
+                 "clinical_vars_demo",
+                 "Load outcome variables and clinical variables",
+                 multiple = TRUE,
+                 accept = c(".csv")
+               ),
+               fileInput('dir2_demo',
+                         "Choose directory",
+                         multiple = TRUE,
+                         accept = c()
+               )
+             ),
+             br(),
+             wellPanel(
+               h4(tags$b("Subject summary")),
+               selectInput(
+                 'select_patient_to_explore_demo',
+                 label = 'Search and select a subject to explore',
+                 choices = c()
+               ),
+               actionButton('run_demo', 'Run')
+             )
+             ,
+             hr(),
+             wellPanel(
+               h4(tags$b("Image on Scalar Regression Analysis")),
+               hr(),
+               h5(
+                 'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
+        and clicking `Add variable to model` for each selection. Then click `fit model` to run the
+        regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
+        change the parameter displayed.'
+               ),
+               selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
+                           choices = c()),
+               actionButton('add_regr_variable_demo', 'Add variable to model'),
+               textOutput('print_regr_variables_demo'),
+               hr(),
+               actionButton('run_regression_demo', 'Fit model'),
+               selectInput('select_param_view_demo', label = 'Select variable on which to view brain images:',
+                           choices = c())
+             )
+             
+             ),
+             mainPanel(
+               h4('Data summary:'),
+               hr(),
+               verbatimTextOutput('results_summary_demo'),
+               plotOutput('results_image_demo'),
+               h4('Image on Scalar Regression results:'),
+               hr(),
+               plotOutput('model_results_image_demo')
+             )
+          ),
+    tabPanel('About'),
+    tabPanel('Download')
   ),
-  mainPanel(
-    h4('Data summary:'),
-    hr(),
-    verbatimTextOutput('results_summary'),
-    plotOutput('results_image'),
-    h4('Image on Scalar Regression results:'),
-    hr(),
-    plotOutput('model_results_image')
-  )
+  
 )
 
 server = function(input, output, session) {
@@ -139,8 +228,23 @@ server = function(input, output, session) {
     #f = readnii(input$dir2$datapath[1])
   })
   
+  observeEvent(input$dir2_demo, {
+    #print(paste(getwd(), input$dir2$name, sep = '/'))
+    dir.create(paste(getwd(), 'temp_fls', sep = '/'))
+    paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2_demo$name, sep = '/')
+    #print("ABCEDF:")
+    #print(paths_to_nii_)
+    file.copy(input$dir2_demo$datapath, paths_to_nii_)
+    patient_list_update_demo()
+    #f = readnii(input$dir2$datapath[1])
+  })
+  
   observeEvent(input$mask_image, {
     AAL_mask <<- readnii(input$mask_image$datapath)
+  })
+  
+  observeEvent(input$mask_image_demo, {
+    AAL_mask_demo <<- readnii(input$mask_image_demo$datapath)
   })
   
   observeEvent(input$clinical_vars, {
@@ -152,6 +256,15 @@ server = function(input, output, session) {
                       choices = colnames(phenos_dat))
   })
   
+  observeEvent(input$clinical_vars_demo, {
+    phenos_dat_demo <<- read.csv(input$clinical_vars_demo$datapath)
+    #print(input$clinical_vars$datapath)
+    updateSelectInput(session,
+                      'select_regr_vars_demo',
+                      label = 'Select predictor variables for regression model:',
+                      choices = colnames(phenos_dat_demo))
+  })
+  
   regr_selections = reactive({
     req(input$add_regr_variable)
     input$add_regr_variable
@@ -160,8 +273,20 @@ server = function(input, output, session) {
     regr_variables_
   })
   
+  regr_selections_demo = reactive({
+    req(input$add_regr_variable_demo)
+    input$add_regr_variable_demo
+    isolate(regr_variables_demo_ <<-
+              c(regr_variables_demo_, input$select_regr_vars_demo))
+    regr_variables_demo_
+  })
+  
   output$print_regr_variables = renderText({
     toString(regr_selections())
+  })
+  
+  output$print_regr_variables_demo = renderText({
+    toString(regr_selections_demo())
   })
   
   model_fit_results = reactive({
@@ -248,6 +373,90 @@ server = function(input, output, session) {
     
   })
   
+  model_fit_results_demo = reactive({
+    req(input$run_regression_demo)
+    input$run_regression_demo
+    suffix = "_2bk-baseline_con_3mm.nii.gz"
+    mask = ifelse(AAL_mask_demo > 0, 1, 0)
+    voxels = which(mask == 1, arr.ind = TRUE)
+    colnames(voxels) <- c("x", "y", "z")
+    z_range = unique(voxels[, 3])
+    z_show_slices = z_range[seq(10, 40, by = 2)]
+    #print("imagepath-----------------------------------------------------------------------")
+    #print(imagepath)
+    imgs = readnii(paste(imagepath_demo, paste0(isolate(input$select_patient_to_explore_demo), suffix), sep = '/'))
+    imgsfiles = dir(imagepath_demo)
+    subjID = unlist(strsplit(imgsfiles, suffix))
+    X_names = regr_variables_demo_
+    X = phenos_dat_demo[match(subjID, as.character(phenos_dat_demo[['Subject']])), X_names, drop = FALSE]
+    
+    matX = NULL
+    nm_X = names(X)
+    nms = NULL
+    for (i in 1:ncol(X)) {
+      if (is.factor(X[[i]])) {
+        levels_X = levels(X[[i]])
+        if (length(levels_X) > 1) {
+          for (j in 2:length(levels_X)) {
+            matX = cbind(matX, ifelse(as.character(X[[i]]) == levels_X[j], 1, 0))
+            nms = c(nms, paste(nm_X[i], levels_X[j], sep = "_"))
+          }
+        }
+      } else{
+        matX = cbind(matX, X[[i]])
+        nms = c(nms, nm_X[i])
+      }
+    }
+    
+    imgdat = matrix(NA, nrow = length(imgsfiles), ncol = sum(mask == 1))
+    for (i in 1:length(imgsfiles)) {
+      #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:::::")
+      #print(imagepath)
+      #print(imgsfiles[i])
+      img = readnii(file.path(imagepath_demo, imgsfiles[i]))
+      img[] = ifelse(is.nan(img[]), 0, img[])
+      img[] = ifelse(mask[] == 1, img[], NaN)
+      imgdat[i, ] = img[mask[] == 1]
+    }
+    
+    sigma2_beta = 0.01
+    XtX = crossprod(matX)
+    XtY = crossprod(matX, imgdat)
+    beta0 = solve(XtX + sigma2_beta * diag(nrow(XtX)), XtY)
+    beta = beta0
+    for (j in 1:ncol(beta)) {
+      beta[, j] = ifelse(beta0[, j] > quantile(abs(beta0[, j]), prob = 0.95), beta0[, j], 0)
+    }
+    
+    img_temp = readnii(file.path(imagepath_demo, imgsfiles[1]))
+    for (j in 1:nrow(beta)) {
+      img_betas[[j]] <<- img_temp
+      img_betas[[j]][which(mask[] == 1)] <<- beta[j, ]
+      img_betas[[j]][which(mask[] != 1)] <<- NaN
+    }
+    names(img_betas) <<- nms
+    
+    img_cols <<- colorRampPalette(c("blue", "yellow", "red"))(256)
+    #show results
+    select_var <<- nms[1]
+    slices_to_show <<- c(15, 25, 35, 45)
+    plane <<- "coronal" #"coronal", "sagittal"
+    
+    updateSelectInput(session = session,
+                      'select_param_view_demo',
+                      choices = nms)
+    
+    output$results_summary_demo = renderPrint({
+      #req(input$run)
+      suffix = "_2bk-baseline_con_3mm.nii.gz"
+      subjID = unlist(strsplit(imgsfiles, suffix))
+      X_names = regr_variables_demo_
+      X = phenos_dat_demo[match(subjID, as.character(phenos_dat_demo[['Subject']])), X_names, drop = FALSE]
+      print(summary(X))
+    })
+    
+  })
+  
   
   output$model_results_image = renderPlot({
     model_fit_results()
@@ -281,6 +490,41 @@ server = function(input, output, session) {
     
   }, bg = 'black') #, main = list(select_var, col = "white"), mar = rep(1, 4))
   
+  
+  output$model_results_image_demo = renderPlot({
+    model_fit_results_demo()
+    new_view_var_demo_ = new_view_variable_demo()
+    if (input$select_param_view_demo %>% str_length == 0) {
+      return(
+        image(
+          img_betas[[select_var]],
+          z = slices_to_show,
+          plot.type = "single",
+          col = img_cols,
+          plane = plane
+          # main = list(select_var, col = "white"),
+          # mar = rep(1, 4)
+        )
+      )
+    } else {
+      return(
+        image(
+          img_betas[[new_view_variable()]],
+          z = slices_to_show,
+          plot.type = "single",
+          col = img_cols,
+          plane = plane
+          # main = list(select_var, col = "white"),
+          # mar = rep(1, 4)
+        )
+      )
+    }
+    
+    
+  }, bg = 'black') #, main = list(select_var, col = "white"), mar = rep(1, 4))
+  
+  
+  
   new_view_variable = reactive({
     req(input$select_param_view %>% str_length > 0)
     if (is.null(input$select_param_view) &
@@ -290,6 +534,18 @@ server = function(input, output, session) {
       return(input$select_param_view)
     }
   })
+  
+  
+  new_view_variable_demo = reactive({
+    req(input$select_param_view_demo %>% str_length > 0)
+    if (is.null(input$select_param_view_demo) &
+        !(is_empty(select_var))) {
+      return(select_var)
+    } else if (!is.null(input$select_param_view_demo)) {
+      return(input$select_param_view_demo)
+    }
+  })
+  
   
   patient_list_update = reactive({
     #req(input$mask_image$datapath > 0)
@@ -318,6 +574,35 @@ server = function(input, output, session) {
     return()
   })
   
+  
+  patient_list_update_demo = reactive({
+    #req(input$mask_image$datapath > 0)
+    #print('test this::::')
+    #print(length(paths_to_nii_))
+    req(length(paths_to_nii_) > 0)
+    input$dir2_demo$datapath
+    input$mask_image_demo$datapath
+    #imagepath <<- mdat_path()
+    paths_temp = unlist(str_split(paths_to_nii_[1], pattern = '/'))
+    #print('zzzzzzzzssssssss:')
+    #print(paths_temp)
+    paths_temp = paths_temp[-length(paths_temp)]
+    paths_temp <<- stri_paste(paths_temp, collapse = '/')
+    imagepath_demo <<- paths_temp
+    #print('imagepath ------------------------------------------------------------------------------------')
+    #print(stri_paste(imagepath, collapse = '/'))
+    if (length(imagepath_demo) > 0) {
+      suffix = "_2bk-baseline_con_3mm.nii.gz"
+      imgsfiles = dir(stri_paste(imagepath_demo, collapse = '/'))
+      subjID = unlist(strsplit(imgsfiles, suffix))
+      updateSelectInput(inputId = 'select_patient_to_explore_demo',
+                        choices = subjID,
+                        session = session)
+    }
+    return()
+  })
+  
+  
   output$results_image = renderPlot({
     req(input$run)
     suffix = "_2bk-baseline_con_3mm.nii.gz"
@@ -335,6 +620,25 @@ server = function(input, output, session) {
     imgs = readnii(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
+  
+  output$results_image_demo = renderPlot({
+    req(input$run_demo)
+    suffix = "_2bk-baseline_con_3mm.nii.gz"
+    mask = ifelse(AAL_mask_demo > 0, 1, 0)
+    voxels = which(mask == 1, arr.ind = TRUE)
+    colnames(voxels) <- c("x", "y", "z")
+    z_range = unique(voxels[, 3])
+    z_show_slices = z_range[seq(10, 40, by = 2)]
+    #print('BIG debug')
+    #print("IMAGE PATH:")
+    #print(imagepath) imagepath
+    imagepath_demo <<- stri_paste(imagepath_demo, collapse = '/')
+    #print("NEXT")
+    #print(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
+    imgs = readnii(paste(imagepath_demo, paste0(input$select_patient_to_explore_demo, suffix), sep = '/'))
+    image(imgs, z = z_show_slices, plot.type = "single")
+  }, bg = 'black')
+  
 }
 
 shinyApp(ui = ui, server = server)
