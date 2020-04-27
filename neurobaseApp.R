@@ -28,7 +28,7 @@ paths_temp = c() # path up to the nii files
 
 ui = fluidPage(
   fluidRow(headerPanel(
-    h3("Image on Scalar Regression", style = "color: #02169B; font-weight: normal; border: 1px")
+    h3("Image on Scalar Regression Program", style = "color: #02169B; font-weight: normal; border: 1px")
   ),
   div(style = "height:55px; background-color: #F1F1F1; border-bottom: groove; border-color: #02169B; border-width: 3px;")),
   tags$style(HTML(".tabbable > .nav > li > a                  {background-color: #F1F1F1;  color:black}
@@ -104,13 +104,19 @@ ui = fluidPage(
              
              ),
              mainPanel(
-               h4('Data summary:'),
-               hr(),
-               verbatimTextOutput('results_summary'),
-               plotOutput('results_image'),
-               h4('Image on Scalar Regression results:'),
-               hr(),
-               plotOutput('model_results_image')
+               wellPanel(style = 'background: #fcfcfc',
+                 h4(tags$b('Data summary'), style = 'text-decoration: underline'),
+                 hr(),
+                 verbatimTextOutput('results_summary'),
+                 plotOutput('results_image'),
+                 hr()
+               ),
+               wellPanel(style = 'background: #fcfcfc',
+                 h4(tags$b('Image on Scalar Regression results'), style = 'text-decoration: underline'),
+                 hr(),
+                 plotOutput('model_results_image'),
+                 hr()
+               ),
              ) 
              ),
     tabPanel('Demo',
@@ -182,7 +188,7 @@ ui = fluidPage(
              
              ),
              mainPanel(
-               h4('Data summary:'),
+               h4('Data summary:', style = 'text-decoration: underline'),
                hr(),
                verbatimTextOutput('results_summary_demo'),
                plotOutput('results_image_demo'),
