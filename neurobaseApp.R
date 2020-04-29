@@ -11,6 +11,7 @@ library(shiny)
 library(shinyFiles)
 library(tidyverse)
 library(stringi)
+library(rintrojs)
 
 regr_variables_ = c()
 regr_variables_demo_ = c()
@@ -33,6 +34,18 @@ ui = fluidPage(
   div(style = "height:55px; background-color: #F1F1F1; border-bottom: groove; border-color: #02169B; border-width: 3px;")),
   tags$style(HTML(".tabbable > .nav > li > a                  {background-color: #F1F1F1;  color:black}
                   .tabbable > .nav > li[class=active]    > a {background-color: white; color:black}")),
+  tags$head(
+    tags$style(
+      HTML(".shiny-notification {
+             position:fixed;
+             top: calc(5%);
+             left: calc(40%);
+             }
+             "
+      )
+    )
+  ),
+  introjsUI(),
   tabsetPanel(
     type = 'tabs',
     tabPanel('Home', 
@@ -122,70 +135,87 @@ ui = fluidPage(
     tabPanel('Demo',
              br(),
              br(),
-             br(),
-             sidebarPanel(wellPanel(
-               h4(tags$b("Instructions")),
-               hr(),
-               h4(
-                 'Set mask image, outcome and clinical variables, and the brain
-              image directory. Then, search and select a subject to explore.'
-               )
-             ), 
-             wellPanel(
-               h4(tags$b("Load data")),
-               h5(
-                 'Load a mask image data set, outcome and clinical variables data,
-         and select a brain image directory.'
-               ),
-               fileInput(
-                 "mask_image_demo",
-                 "Load mask image",
-                 multiple = TRUE,
-                 accept = c(".nii")
-               ),
-               fileInput(
-                 "clinical_vars_demo",
-                 "Load outcome variables and clinical variables",
-                 multiple = TRUE,
-                 accept = c(".csv")
-               ),
-               fileInput('dir2_demo',
-                         "Choose directory",
-                         multiple = TRUE,
-                         accept = c()
+             fluidRow(
+               column(width = 5,
+                      wellPanel(
+                        h5('Welcome to the interactive demo! To get started, click the `Start Demo` button.'),
+                        actionButton('start_interactive_demo', 'Start Demo')
+                      )
                )
              ),
              br(),
-             wellPanel(
-               h4(tags$b("Subject summary")),
-               selectInput(
-                 'select_patient_to_explore_demo',
-                 label = 'Search and select a subject to explore',
-                 choices = c()
-               ),
-               actionButton('run_demo', 'Run')
-             )
-             ,
-             hr(),
-             wellPanel(
-               h4(tags$b("Image on Scalar Regression Analysis")),
+             introBox(
+               sidebarPanel(wellPanel(
+                 h4(tags$b("Instructions")),
+                 hr(),
+                 h4(
+                   'Set mask image, outcome and clinical variables, and the brain
+              image directory. Then, search and select a subject to explore.'
+                 )
+               ), 
+               introBox(
+                 wellPanel(
+                   h4(tags$b("Load data")),
+                   h5(
+                     'Load a mask image data set, outcome and clinical variables data,
+         and select a brain image directory.'
+                   ),
+                   fileInput(
+                     "mask_image_demo",
+                     "Load mask image",
+                     multiple = TRUE,
+                     accept = c(".nii")
+                   ),
+                   fileInput(
+                     "clinical_vars_demo",
+                     "Load outcome variables and clinical variables",
+                     multiple = TRUE,
+                     accept = c(".csv")
+                   ),
+                   fileInput('dir2_demo',
+                             "Choose directory",
+                             multiple = TRUE,
+                             accept = c()
+                   )
+                 ), data.step = 2, data.intro = 'In this section, you will load the mask image data,
+                 the outcome variables a clinical variables data, and choose all individuals\' brain scan files from a directory. 
+                 We will walk you through each step with example data.'
+               )
+               ,
+               br(),
+               wellPanel(
+                 h4(tags$b("Subject summary")),
+                 selectInput(
+                   'select_patient_to_explore_demo',
+                   label = 'Search and select a subject to explore',
+                   choices = c()
+                 ),
+                 actionButton('run_demo', 'Run')
+               )
+               ,
                hr(),
-               h5(
-                 'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
+               wellPanel(
+                 h4(tags$b("Image on Scalar Regression Analysis")),
+                 hr(),
+                 h5(
+                   'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
         and clicking `Add variable to model` for each selection. Then click `fit model` to run the
         regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
         change the parameter displayed.'
+                 ),
+                 selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
+                             choices = c()),
+                 actionButton('add_regr_variable_demo', 'Add variable to model'),
+                 textOutput('print_regr_variables_demo'),
+                 hr(),
+                 actionButton('run_regression_demo', 'Fit model'),
+                 selectInput('select_param_view_demo', label = 'Select variable on which to view brain images:',
+                             choices = c())
+               )
+               
                ),
-               selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
-                           choices = c()),
-               actionButton('add_regr_variable_demo', 'Add variable to model'),
-               textOutput('print_regr_variables_demo'),
-               hr(),
-               actionButton('run_regression_demo', 'Fit model'),
-               selectInput('select_param_view_demo', label = 'Select variable on which to view brain images:',
-                           choices = c())
-             )
-             
+               data.step = 1, data.intro = 'This is the sidebar. It contains all tools and options
+               used to run the app'
              ),
              mainPanel(
                wellPanel(style = 'background: #fcfcfc',
@@ -203,8 +233,11 @@ ui = fluidPage(
                )
              )
           ),
-    tabPanel('About'),
-    tabPanel('Download')
+    tabPanel('About',
+             HTML('This program was developed at the University of Michigan Department of Biostatistics.'),
+             HTML('<br> References and further reading: publication in development')),
+    tabPanel('Download',
+             'Download for offline use coming soon!')
   ),
   
 )
@@ -229,6 +262,14 @@ server = function(input, output, session) {
 #     return(paste0(dir_new_, sep = '/'))
 #   })
   
+  showNotification('Click the `Demo` tab for a full demonstration of the app!', 
+                   type = 'message', duration = 180)
+  
+  observeEvent(input$start_interactive_demo, {
+    introjs(session, options = list('nextLabel' = 'Next', 'prevLabel' = 'Previous', 'skipLabel' = 'Skip'),
+            events = list('oncomplete' = I('alert("Congratulations, you completed this demonstration!")')))
+  })
+  
   observeEvent(input$dir2, {
     #print(paste(getwd(), input$dir2$name, sep = '/'))
     dir.create(paste(getwd(), 'temp_fls', sep = '/'))
@@ -240,10 +281,21 @@ server = function(input, output, session) {
     #f = readnii(input$dir2$datapath[1])
   })
   
-  observeEvent(input$dir2_demo, {
+  # observeEvent(input$dir2_demo, {
+  #   #print(paste(getwd(), input$dir2$name, sep = '/'))
+  #   #dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
+  #   paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
+  #   #print("ABCEDF:")
+  #   #print(paths_to_nii_)
+  #   file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
+  #   patient_list_update_demo()
+  #   #f = readnii(input$dir2$datapath[1])
+  # })
+  
+  observeEvent(input$start_interactive_demo, {
     #print(paste(getwd(), input$dir2$name, sep = '/'))
-    dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
-    paths_to_nii_demo_ <<- paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
+    #dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
+    paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
     #print("ABCEDF:")
     #print(paths_to_nii_)
     file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
