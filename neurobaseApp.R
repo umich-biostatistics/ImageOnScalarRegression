@@ -55,9 +55,10 @@ ui = fluidPage(
              sidebarPanel(wellPanel(
                h4(tags$b("Instructions")),
                hr(),
-               h4(
-                 'Set mask image, outcome and clinical variables, and the brain
-              image directory. Then, search and select a subject to explore.'
+               h5(
+                 'If you are new to the app, visit the `Demo` tab for a complete walk-through 
+                 with examples. Otherwise, set mask image, outcome and clinical variables, and the brain
+              image directory. Then search/select a subject to explore and fit regression models.'
                )
              ), 
              wellPanel(
@@ -118,14 +119,14 @@ ui = fluidPage(
              ),
              mainPanel(
                wellPanel(style = 'background: #fcfcfc',
-                 h4(tags$b('Data summary'), style = 'text-decoration: underline'),
+                 h4(tags$b('Data summary')),
                  hr(),
                  verbatimTextOutput('results_summary'),
                  plotOutput('results_image'),
                  hr()
                ),
                wellPanel(style = 'background: #fcfcfc',
-                 h4(tags$b('Image on Scalar Regression results'), style = 'text-decoration: underline'),
+                 h4(tags$b('Image on Scalar Regression results')),
                  hr(),
                  plotOutput('model_results_image'),
                  hr()
@@ -141,6 +142,30 @@ ui = fluidPage(
                         h5('Welcome to the interactive demo! To get started, click the `Start Demo` button.'),
                         actionButton('start_interactive_demo', 'Start Demo')
                       )
+               ),
+               column(width = 4,
+                      introBox(
+                        wellPanel(
+                          h5('Data sets for the demo. Follow the demo for further instructions.'),
+                          introBox(
+                            actionButton('download_mask', 'Download mask image'),
+                            data.step = 4, data.intro = 'Click download. Find the download in your computer.
+                            In the next step we will upload this file'
+                          ),
+                          introBox(
+                            actionButton('download_covars', 'Download covariates'),
+                            data.step = 6, data.intro = 'Download the covariates and clinical variables
+                            data set.'
+                          ),
+                          introBox(
+                            actionButton('download_brain_scans', 'Download brain scans directory'),
+                            data.step = 8, data.intro = 'Download the directory with each brain scan file 
+                            for the individuals of interest.'
+                          ),
+                        ),
+                        data.step = 3, data.intro = 'Here you will download and prepare the data you will need
+                        to run this app. Your data will have to follow the formats we use in order to work properly.'
+                      )
                )
              ),
              br(),
@@ -148,9 +173,10 @@ ui = fluidPage(
                sidebarPanel(wellPanel(
                  h4(tags$b("Instructions")),
                  hr(),
-                 h4(
-                   'Set mask image, outcome and clinical variables, and the brain
-              image directory. Then, search and select a subject to explore.'
+                 h5(
+                   'If you are new to the app, visit the `Demo` tab for a complete walk-through 
+                    with examples. Otherwise, set mask image, outcome and clinical variables, and the brain
+                   image directory. Then search/select a subject to explore and fit regression models.'
                  )
                ), 
                introBox(
@@ -160,22 +186,33 @@ ui = fluidPage(
                      'Load a mask image data set, outcome and clinical variables data,
          and select a brain image directory.'
                    ),
-                   fileInput(
-                     "mask_image_demo",
-                     "Load mask image",
-                     multiple = TRUE,
-                     accept = c(".nii")
+                   introBox(
+                     fileInput(
+                       "mask_image_demo",
+                       "Load mask image",
+                       multiple = TRUE,
+                       accept = c(".nii")
+                     ), data.step = 5, data.intro = 'Upload the data set you just downloaded by
+                     navigating to it in the file explorer that appears when you click the button. When
+                     the file is successfuly uploaded, the blue bar will fill up.'
                    ),
-                   fileInput(
-                     "clinical_vars_demo",
-                     "Load outcome variables and clinical variables",
-                     multiple = TRUE,
-                     accept = c(".csv")
+                   introBox(
+                     fileInput(
+                       "clinical_vars_demo",
+                       "Load outcome variables and clinical variables",
+                       multiple = TRUE,
+                       accept = c(".csv")
+                     ), data.step = 7, data.intro = 'Just like in the last data upload, click the 
+                     button to navigate to the file on your computer to upload it to the program.'
                    ),
-                   fileInput('dir2_demo',
-                             "Choose directory",
-                             multiple = TRUE,
-                             accept = c()
+                   introBox(
+                     fileInput('dir2_demo',
+                               "Choose directory",
+                               multiple = TRUE,
+                               accept = c()
+                     ), data.step = 9, data.intro = 'This time you have to upload the entire directory
+                     you downloaded, so navigate to the location, but select all the files you just downloaded
+                     and click ok.'
                    )
                  ), data.step = 2, data.intro = 'In this section, you will load the mask image data,
                  the outcome variables a clinical variables data, and choose all individuals\' brain scan files from a directory. 
@@ -191,8 +228,7 @@ ui = fluidPage(
                    choices = c()
                  ),
                  actionButton('run_demo', 'Run')
-               )
-               ,
+               ),
                hr(),
                wellPanel(
                  h4(tags$b("Image on Scalar Regression Analysis")),
@@ -219,14 +255,14 @@ ui = fluidPage(
              ),
              mainPanel(
                wellPanel(style = 'background: #fcfcfc',
-                         h4(tags$b('Data summary'), style = 'text-decoration: underline'),
+                         h4(tags$b('Data summary')),
                          hr(),
                          verbatimTextOutput('results_summary_demo'),
                          plotOutput('results_image_demo'),
                          hr()
                ),
                wellPanel(style = 'background: #fcfcfc',
-                         h4(tags$b('Image on Scalar Regression results'), style = 'text-decoration: underline'),
+                         h4(tags$b('Image on Scalar Regression results')),
                          hr(),
                          plotOutput('model_results_image_demo'),
                          hr()
@@ -281,7 +317,18 @@ server = function(input, output, session) {
     #f = readnii(input$dir2$datapath[1])
   })
   
-  # observeEvent(input$dir2_demo, {
+  observeEvent(input$dir2_demo, {
+    #print(paste(getwd(), input$dir2$name, sep = '/'))
+    dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
+    paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
+    #print("ABCEDF:")
+    #print(paths_to_nii_)
+    file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
+    patient_list_update_demo()
+    #f = readnii(input$dir2$datapath[1])
+  })
+  
+  # observeEvent(input$start_interactive_demo, {
   #   #print(paste(getwd(), input$dir2$name, sep = '/'))
   #   #dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
   #   paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
@@ -291,17 +338,6 @@ server = function(input, output, session) {
   #   patient_list_update_demo()
   #   #f = readnii(input$dir2$datapath[1])
   # })
-  
-  observeEvent(input$start_interactive_demo, {
-    #print(paste(getwd(), input$dir2$name, sep = '/'))
-    #dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
-    paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
-    #print("ABCEDF:")
-    #print(paths_to_nii_)
-    file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
-    patient_list_update_demo()
-    #f = readnii(input$dir2$datapath[1])
-  })
   
   observeEvent(input$mask_image, {
     AAL_mask <<- readnii(input$mask_image$datapath)
