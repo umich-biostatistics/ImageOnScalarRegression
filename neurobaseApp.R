@@ -316,8 +316,8 @@ server = function(input, output, session) {
       paste('mask-', Sys.Date(), '.zip', sep='')
     },
     content = function(con) {
-      fl = paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
-      writenii(AAL_mask_download, filename = fl)
+      fl = paste('AAL_90_3mm-', Sys.Date(), '.nii', sep='')
+      writenii(AAL_mask_download, filename = fl, gzipped = FALSE)
       zip(zipfile = con, files = fl)
     },
     contentType = 'application/zip'
@@ -383,7 +383,7 @@ server = function(input, output, session) {
   observeEvent(input$dir2_demo, {
     #print(paste(getwd(), input$dir2$name, sep = '/'))
     dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
-    paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
+    paths_to_nii_demo_ <<- paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
     #print("ABCEDF:")
     #print(paths_to_nii_)
     file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
