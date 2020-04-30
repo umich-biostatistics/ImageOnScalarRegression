@@ -148,17 +148,17 @@ ui = fluidPage(
                         wellPanel(
                           h5('Data sets for the demo. Follow the demo for further instructions.'),
                           introBox(
-                            actionButton('download_mask', 'Download mask image'),
+                            downloadButton('download_mask', 'Download mask image'),
                             data.step = 4, data.intro = 'Click download. Find the download in your computer.
                             In the next step we will upload this file'
                           ),
                           introBox(
-                            actionButton('download_covars', 'Download covariates'),
+                            downloadButton('download_covars', 'Download covariates'),
                             data.step = 6, data.intro = 'Download the covariates and clinical variables
                             data set.'
                           ),
                           introBox(
-                            actionButton('download_brain_scans', 'Download brain scans directory'),
+                            downloadButton('download_brain_scans', 'Download brain scans directory'),
                             data.step = 8, data.intro = 'Download the directory with each brain scan file 
                             for the individuals of interest.'
                           ),
@@ -220,14 +220,17 @@ ui = fluidPage(
                )
                ,
                br(),
-               wellPanel(
-                 h4(tags$b("Subject summary")),
-                 selectInput(
-                   'select_patient_to_explore_demo',
-                   label = 'Search and select a subject to explore',
-                   choices = c()
-                 ),
-                 actionButton('run_demo', 'Run')
+               introBox(
+                 wellPanel(
+                   h4(tags$b("Subject summary")),
+                   selectInput(
+                     'select_patient_to_explore_demo',
+                     label = 'Search and select a subject to explore',
+                     choices = c()
+                   ),
+                   actionButton('run_demo', 'Run')
+                 ), data.step = 10, data.intro = 'Select a subject from the dropdown on which
+                 to explore summary data. Then, the summary will appear in the `Data summary` window.'
                ),
                hr(),
                wellPanel(
@@ -299,12 +302,72 @@ server = function(input, output, session) {
 #   })
   
   showNotification('Click the `Demo` tab for a full demonstration of the app!', 
-                   type = 'message', duration = 180)
+                   type = 'message', duration = 7)
   
   observeEvent(input$start_interactive_demo, {
     introjs(session, options = list('nextLabel' = 'Next', 'prevLabel' = 'Previous', 'skipLabel' = 'Skip'),
             events = list('oncomplete' = I('alert("Congratulations, you completed this demonstration!")')))
   })
+  
+  AAL_mask_download = readnii('data_demo/AAL_90_3mm.nii')
+  output$download_mask <- downloadHandler(
+    filename = function() {
+      #paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
+      paste('mask-', Sys.Date(), '.zip', sep='')
+    },
+    content = function(con) {
+      fl = paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
+      writenii(AAL_mask_download, filename = fl)
+      zip(zipfile = con, files = fl)
+    },
+    contentType = 'application/zip'
+  )
+  
+  BioStats_phenos = read.csv('data_demo/BioStats_phenos_rest_nback_include.csv')
+  output$download_covars <- downloadHandler(
+    filename = function() {
+      paste('BioStats_phenos-', Sys.Date(), '.csv', sep='')
+    },
+    content = function(con) {
+      write.csv(BioStats_phenos, con)
+    }
+  )
+  
+  
+  #paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2$name, sep = '/')
+  #file.copy(input$dir2$datapath, paths_to_nii_)
+  
+  #AAL_mask_download = readnii('data_demo/AAL_90_3mm.nii')
+  output$download_brain_scans <- downloadHandler(
+    filename = function() {
+      #paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
+      paste('imaging_data-', Sys.Date(), '.zip', sep='')
+    },
+    content = function(con) {
+      ##dir.create(paste(getwd(), 'imaging_data', sep = '/'))
+      example_imaging_names = c('sub-NDARINV0A4ZDYNL_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0A6WVRZY_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0A9K5L4R_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0B7UGM1D_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0BXXNBH4_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0C765WK4_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0CBPKF6W_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0CCVJ39W_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0CF1U8X8_2bk-baseline_con_3mm.nii.gz',
+                                'sub-NDARINV0CKA3YZX_2bk-baseline_con_3mm.nii.gz')
+      #paths_to_demo = paste('data_demo', example_imaging_names, sep = '/')
+      #fl = c()
+      for (name in example_imaging_names) {
+        #fl = c(fl, name)
+        temp_image = readnii(paste('data_demo', name, sep = '/'))
+        writenii(temp_image, filename = name)
+      }
+      # fl = paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
+      # writenii(AAL_mask_download, filename = fl)
+      zip(zipfile = con, files = example_imaging_names)
+    },
+    contentType = 'application/zip'
+  )
   
   observeEvent(input$dir2, {
     #print(paste(getwd(), input$dir2$name, sep = '/'))
