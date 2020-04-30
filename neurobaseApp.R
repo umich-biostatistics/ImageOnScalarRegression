@@ -233,42 +233,69 @@ ui = fluidPage(
                  to explore summary data. Then, the summary will appear in the `Data summary` window.'
                ),
                hr(),
-               wellPanel(
-                 h4(tags$b("Image on Scalar Regression Analysis")),
-                 hr(),
-                 h5(
-                   'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
+               introBox(
+                 wellPanel(
+                   h4(tags$b("Image on Scalar Regression Analysis")),
+                   hr(),
+                   h5(
+                     'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
         and clicking `Add variable to model` for each selection. Then click `fit model` to run the
         regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
         change the parameter displayed.'
-                 ),
-                 selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
-                             choices = c()),
-                 actionButton('add_regr_variable_demo', 'Add variable to model'),
-                 textOutput('print_regr_variables_demo'),
-                 hr(),
-                 actionButton('run_regression_demo', 'Fit model'),
-                 selectInput('select_param_view_demo', label = 'Select variable on which to view brain images:',
-                             choices = c())
+                   ),
+                   introBox(
+                     selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
+                                 choices = c()),
+                     actionButton('add_regr_variable_demo', 'Add variable to model'),
+                     textOutput('print_regr_variables_demo'),
+                     data.step = 13, data.intro = 'In this section, you can choose the independent variables to 
+                 include in the regression analysis. Select one at a time from the dropdown menu and click 
+                 `Add variable to model` to update the model with your new selection. Each indenpendent variable
+                 will show in a comma separated list below the `Add variable` button.'
+                   ),
+                   hr(),
+                   introBox(
+                     actionButton('run_regression_demo', 'Fit model'),
+                     data.step = 14, data.intro = 'Click this button to fit the model. These models require wait time
+                     to run, so expect to wait a few minutes or more.'
+                   ),
+                   introBox(
+                     selectInput('select_param_view_demo', label = 'Select variable on which to view brain images:',
+                                 choices = c()),
+                     data.step = 16, data.intro = 'Use the dropdown to select parameters one at a time to view
+                     their effects on brain images. Once you have made a selection, click'
+                   )
+                 ), data.step = 12, data.intro = 'In this section, you can choose the independent variables to 
+                 include in the regression analysis, run the analysis and select ways of viewing the results.'
                )
-               
                ),
                data.step = 1, data.intro = 'This is the sidebar. It contains all tools and options
                used to run the app'
              ),
              mainPanel(
-               wellPanel(style = 'background: #fcfcfc',
-                         h4(tags$b('Data summary')),
-                         hr(),
-                         verbatimTextOutput('results_summary_demo'),
-                         plotOutput('results_image_demo'),
-                         hr()
+               introBox(
+                 wellPanel(style = 'background: #fcfcfc',
+                           h4(tags$b('Data summary')),
+                           hr(),
+                           verbatimTextOutput('results_summary_demo'),
+                           plotOutput('results_image_demo'),
+                           hr()
+                 ), data.step = 11, data.intro = 'This panel displays the summary information 
+                 for the selected subject. Once the regression model is fitted, additional summary statistics
+                 will show here as well.'
                ),
-               wellPanel(style = 'background: #fcfcfc',
-                         h4(tags$b('Image on Scalar Regression results')),
-                         hr(),
-                         plotOutput('model_results_image_demo'),
-                         hr()
+               introBox(
+                 wellPanel(style = 'background: #fcfcfc',
+                           h4(tags$b('Image on Scalar Regression results')),
+                           hr(),
+                           introBox(
+                             plotOutput('model_results_image_demo'),
+                             data.step = 17, data.intro = 'The update image based on the variable you select
+                             will display here. Try a few selections to see how the image changes.'
+                           ),
+                           hr()
+                 ),
+                 data.step = 15, data.intro = 'When the model is fitted, results will display in this window.'
                )
              )
           ),
