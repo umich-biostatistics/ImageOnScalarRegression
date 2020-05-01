@@ -1,11 +1,4 @@
 
-# pkgs = as.character(installed.packages()[, 'Package'])
-# req.pkgs = c('neurobase', 'shiny', 'shinyFiles', 'tidyverse')
-# sapply(req.pkgs, function(x) {
-#   if (!(x %in% pkgs))
-#     install.packages(x)
-# })
-
 library(neurobase)
 library(shiny)
 library(shinyFiles)
@@ -25,7 +18,7 @@ plane = c()
 paths_to_nii_ = c()
 paths_to_nii_demo_ = c()
 
-paths_temp = c() # path up to the nii files
+paths_temp = c()
 
 ui = fluidPage(
   fluidRow(headerPanel(
@@ -58,14 +51,14 @@ ui = fluidPage(
                h5(
                  'If you are new to the app, visit the `Demo` tab for a complete walk-through 
                  with examples. Otherwise, set mask image, outcome and clinical variables, and the brain
-              image directory. Then search/select a subject to explore and fit regression models.'
+                 image directory. Then search/select a subject to explore and fit regression models.'
                )
              ), 
              wellPanel(
                h4(tags$b("Load data")),
                h5(
                  'Load a mask image data set, outcome and clinical variables data,
-         and select a brain image directory.'
+                  and select a brain image directory.'
                ),
                fileInput(
                  "mask_image",
@@ -102,9 +95,9 @@ ui = fluidPage(
                hr(),
                h5(
                  'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
-        and clicking `Add variable to model` for each selection. Then click `fit model` to run the
-        regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
-        change the parameter displayed.'
+                  and clicking `Add variable to model` for each selection. Then click `fit model` to run the
+                  regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
+                  change the parameter displayed.'
                ),
                selectInput('select_regr_vars', label = 'Select predictor variables for regression model:',
                            choices = c()),
@@ -114,9 +107,7 @@ ui = fluidPage(
                actionButton('run_regression', 'Fit model'),
                selectInput('select_param_view', label = 'Select variable on which to view brain images:',
                            choices = c())
-             )
-             
-             ),
+             )),
              mainPanel(
                wellPanel(style = 'background: #fcfcfc',
                  h4(tags$b('Data summary')),
@@ -131,19 +122,18 @@ ui = fluidPage(
                  plotOutput('model_results_image'),
                  hr()
                )
-             ) 
-             ),
+             )),
     tabPanel('Demo',
              br(),
              br(),
              fluidRow(
-               column(width = 5,
+               column(width = 4,
                       wellPanel(
                         h5('Welcome to the interactive demo! To get started, click the `Start Demo` button.'),
                         actionButton('start_interactive_demo', 'Start Demo')
                       )
                ),
-               column(width = 4,
+               column(width = 5,
                       introBox(
                         wellPanel(
                           h5('Data sets for the demo. Follow the demo for further instructions.'),
@@ -184,7 +174,7 @@ ui = fluidPage(
                    h4(tags$b("Load data")),
                    h5(
                      'Load a mask image data set, outcome and clinical variables data,
-         and select a brain image directory.'
+                      and select a brain image directory.'
                    ),
                    introBox(
                      fileInput(
@@ -239,9 +229,9 @@ ui = fluidPage(
                    hr(),
                    h5(
                      'Select predictors to use in the regression analysis by choosing them from the dropdown menu,
-        and clicking `Add variable to model` for each selection. Then click `fit model` to run the
-        regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
-        change the parameter displayed.'
+                      and clicking `Add variable to model` for each selection. Then click `fit model` to run the
+                      regression analysis. The analyis may take minutes to run. Then, use `Select variable to view` to
+                      change the parameter displayed.'
                    ),
                    introBox(
                      selectInput('select_regr_vars_demo', label = 'Select predictor variables for regression model:',
@@ -249,9 +239,9 @@ ui = fluidPage(
                      actionButton('add_regr_variable_demo', 'Add variable to model'),
                      textOutput('print_regr_variables_demo'),
                      data.step = 13, data.intro = 'In this section, you can choose the independent variables to 
-                 include in the regression analysis. Select one at a time from the dropdown menu and click 
-                 `Add variable to model` to update the model with your new selection. Each indenpendent variable
-                 will show in a comma separated list below the `Add variable` button.'
+                     include in the regression analysis. Select one at a time from the dropdown menu and click 
+                     `Add variable to model` to update the model with your new selection. Each indenpendent variable
+                     will show in a comma separated list below the `Add variable` button.'
                    ),
                    hr(),
                    introBox(
@@ -266,7 +256,7 @@ ui = fluidPage(
                      their effects on brain images. Once you have made a selection, click'
                    )
                  ), data.step = 12, data.intro = 'In this section, you can choose the independent variables to 
-                 include in the regression analysis, run the analysis and select ways of viewing the results.'
+                    include in the regression analysis, run the analysis and select ways of viewing the results.'
                )
                ),
                data.step = 1, data.intro = 'This is the sidebar. It contains all tools and options
@@ -309,24 +299,6 @@ ui = fluidPage(
 )
 
 server = function(input, output, session) {
-  # volumes <- getVolumes()
-  # shinyDirChoose(input,
-  #                'dir',
-  #                roots = volumes,
-  #                session = session)
-  # 
-  # mdat_path <- reactive({
-  #   return(parseDirPath(volumes, input$dir))
-  # })
-# 
-#   output$mdat_path_display = renderText({
-#     req(input$dir)
-#     dir_ = unlist(input$dir)
-#     dir2_ = dir_[-length(dir_)]
-#     dir_start_ = dir_[length(dir_)]
-#     dir_new_ = c(dir_start_, dir2_)
-#     return(paste0(dir_new_, sep = '/'))
-#   })
   
   showNotification('Click the `Demo` tab for a full demonstration of the app!', 
                    type = 'message', duration = 7)
@@ -339,7 +311,6 @@ server = function(input, output, session) {
   AAL_mask_download = readnii('data_demo/AAL_90_3mm.nii')
   output$download_mask <- downloadHandler(
     filename = function() {
-      #paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
       paste('mask-', Sys.Date(), '.zip', sep='')
     },
     content = function(con) {
@@ -360,18 +331,11 @@ server = function(input, output, session) {
     }
   )
   
-  
-  #paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2$name, sep = '/')
-  #file.copy(input$dir2$datapath, paths_to_nii_)
-  
-  #AAL_mask_download = readnii('data_demo/AAL_90_3mm.nii')
   output$download_brain_scans <- downloadHandler(
     filename = function() {
-      #paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
       paste('imaging_data-', Sys.Date(), '.zip', sep='')
     },
     content = function(con) {
-      ##dir.create(paste(getwd(), 'imaging_data', sep = '/'))
       example_imaging_names = c('sub-NDARINV0A4ZDYNL_2bk-baseline_con_3mm.nii.gz',
                                 'sub-NDARINV0A6WVRZY_2bk-baseline_con_3mm.nii.gz',
                                 'sub-NDARINV0A9K5L4R_2bk-baseline_con_3mm.nii.gz',
@@ -382,52 +346,28 @@ server = function(input, output, session) {
                                 'sub-NDARINV0CCVJ39W_2bk-baseline_con_3mm.nii.gz',
                                 'sub-NDARINV0CF1U8X8_2bk-baseline_con_3mm.nii.gz',
                                 'sub-NDARINV0CKA3YZX_2bk-baseline_con_3mm.nii.gz')
-      #paths_to_demo = paste('data_demo', example_imaging_names, sep = '/')
-      #fl = c()
       for (name in example_imaging_names) {
-        #fl = c(fl, name)
         temp_image = readnii(paste('data_demo', name, sep = '/'))
         writenii(temp_image, filename = name)
       }
-      # fl = paste('AAL_90_3mm-', Sys.Date(), '.nii.gz', sep='')
-      # writenii(AAL_mask_download, filename = fl)
       zip(zipfile = con, files = example_imaging_names)
     },
     contentType = 'application/zip'
   )
   
   observeEvent(input$dir2, {
-    #print(paste(getwd(), input$dir2$name, sep = '/'))
     dir.create(paste(getwd(), 'temp_fls', sep = '/'))
     paths_to_nii_ <<- paste(paste(getwd(), 'temp_fls', sep = '/'), input$dir2$name, sep = '/')
-    #print("ABCEDF:")
-    #print(paths_to_nii_)
     file.copy(input$dir2$datapath, paths_to_nii_)
     patient_list_update()
-    #f = readnii(input$dir2$datapath[1])
   })
   
   observeEvent(input$dir2_demo, {
-    #print(paste(getwd(), input$dir2$name, sep = '/'))
     dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
     paths_to_nii_demo_ <<- paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
-    #print("ABCEDF:")
-    #print(paths_to_nii_)
     file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
     patient_list_update_demo()
-    #f = readnii(input$dir2$datapath[1])
   })
-  
-  # observeEvent(input$start_interactive_demo, {
-  #   #print(paste(getwd(), input$dir2$name, sep = '/'))
-  #   #dir.create(paste(getwd(), 'temp_fls_demo', sep = '/'))
-  #   paths_to_nii_demo_ <<- paste(getwd(), 'data_demo', 'AAL_90_3mm.nii', sep = '/') #paste(paste(getwd(), 'temp_fls_demo', sep = '/'), input$dir2_demo$name, sep = '/')
-  #   #print("ABCEDF:")
-  #   #print(paths_to_nii_)
-  #   file.copy(input$dir2_demo$datapath, paths_to_nii_demo_)
-  #   patient_list_update_demo()
-  #   #f = readnii(input$dir2$datapath[1])
-  # })
   
   observeEvent(input$mask_image, {
     AAL_mask <<- readnii(input$mask_image$datapath)
@@ -439,7 +379,6 @@ server = function(input, output, session) {
   
   observeEvent(input$clinical_vars, {
     phenos_dat <<- read.csv(input$clinical_vars$datapath)
-    #print(input$clinical_vars$datapath)
     updateSelectInput(session,
                       'select_regr_vars',
                       label = 'Select predictor variables for regression model:',
@@ -448,7 +387,6 @@ server = function(input, output, session) {
   
   observeEvent(input$clinical_vars_demo, {
     phenos_dat_demo <<- read.csv(input$clinical_vars_demo$datapath)
-    #print(input$clinical_vars$datapath)
     updateSelectInput(session,
                       'select_regr_vars_demo',
                       label = 'Select predictor variables for regression model:',
@@ -488,8 +426,6 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    #print("imagepath-----------------------------------------------------------------------")
-    #print(imagepath)
     imgs = readnii(paste(imagepath, paste0(isolate(input$select_patient_to_explore), suffix), sep = '/'))
     imgsfiles = dir(imagepath)
     subjID = unlist(strsplit(imgsfiles, suffix))
@@ -516,9 +452,6 @@ server = function(input, output, session) {
     
     imgdat = matrix(NA, nrow = length(imgsfiles), ncol = sum(mask == 1))
     for (i in 1:length(imgsfiles)) {
-      #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:::::")
-      #print(imagepath)
-      #print(imgsfiles[i])
       img = readnii(file.path(imagepath, imgsfiles[i]))
       img[] = ifelse(is.nan(img[]), 0, img[])
       img[] = ifelse(mask[] == 1, img[], NaN)
@@ -553,14 +486,12 @@ server = function(input, output, session) {
                       choices = nms)
     
     output$results_summary = renderPrint({
-      #req(input$run)
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       subjID = unlist(strsplit(imgsfiles, suffix))
       X_names = regr_variables_
       X = phenos_dat[match(subjID, as.character(phenos_dat[['Subject']])), X_names, drop = FALSE]
       print(summary(X))
     })
-    
   })
   
   model_fit_results_demo = reactive({
@@ -572,8 +503,6 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    #print("imagepath-----------------------------------------------------------------------")
-    #print(imagepath_demo)
     imgs = readnii(paste(imagepath_demo, paste0(isolate(input$select_patient_to_explore_demo), suffix), sep = '/'))
     imgsfiles = dir(imagepath_demo)
     subjID = unlist(strsplit(imgsfiles, suffix))
@@ -600,9 +529,6 @@ server = function(input, output, session) {
     
     imgdat = matrix(NA, nrow = length(imgsfiles), ncol = sum(mask == 1))
     for (i in 1:length(imgsfiles)) {
-      #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:::::")
-      #print(imagepath)
-      #print(imgsfiles[i])
       img = readnii(file.path(imagepath_demo, imgsfiles[i]))
       img[] = ifelse(is.nan(img[]), 0, img[])
       img[] = ifelse(mask[] == 1, img[], NaN)
@@ -637,7 +563,6 @@ server = function(input, output, session) {
                       choices = nms)
     
     output$results_summary_demo = renderPrint({
-      #req(input$run)
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       subjID = unlist(strsplit(imgsfiles, suffix))
       X_names = regr_variables_demo_
@@ -646,7 +571,6 @@ server = function(input, output, session) {
     })
     
   })
-  
   
   output$model_results_image = renderPlot({
     model_fit_results()
@@ -659,8 +583,6 @@ server = function(input, output, session) {
           plot.type = "single",
           col = img_cols,
           plane = plane
-          # main = list(select_var, col = "white"),
-          # mar = rep(1, 4)
         )
       )
     } else {
@@ -671,15 +593,10 @@ server = function(input, output, session) {
           plot.type = "single",
           col = img_cols,
           plane = plane
-          # main = list(select_var, col = "white"),
-          # mar = rep(1, 4)
         )
       )
     }
-    
-    
-  }, bg = 'black') #, main = list(select_var, col = "white"), mar = rep(1, 4))
-  
+  }, bg = 'black')
   
   output$model_results_image_demo = renderPlot({
     model_fit_results_demo()
@@ -692,8 +609,6 @@ server = function(input, output, session) {
           plot.type = "single",
           col = img_cols,
           plane = plane
-          # main = list(select_var, col = "white"),
-          # mar = rep(1, 4)
         )
       )
     } else {
@@ -704,16 +619,10 @@ server = function(input, output, session) {
           plot.type = "single",
           col = img_cols,
           plane = plane
-          # main = list(select_var, col = "white"),
-          # mar = rep(1, 4)
         )
       )
     }
-    
-    
-  }, bg = 'black') #, main = list(select_var, col = "white"), mar = rep(1, 4))
-  
-  
+  }, bg = 'black')
   
   new_view_variable = reactive({
     req(input$select_param_view %>% str_length > 0)
@@ -725,7 +634,6 @@ server = function(input, output, session) {
     }
   })
   
-  
   new_view_variable_demo = reactive({
     req(input$select_param_view_demo %>% str_length > 0)
     if (is.null(input$select_param_view_demo) &
@@ -736,23 +644,14 @@ server = function(input, output, session) {
     }
   })
   
-  
   patient_list_update = reactive({
-    #req(input$mask_image$datapath > 0)
-    #print('test this::::')
-    #print(length(paths_to_nii_))
     req(length(paths_to_nii_) > 0)
     input$dir2$datapath
     input$mask_image$datapath
-    #imagepath <<- mdat_path()
     paths_temp = unlist(str_split(paths_to_nii_[1], pattern = '/'))
-    #print('zzzzzzzzssssssss:')
-    #print(paths_temp)
     paths_temp = paths_temp[-length(paths_temp)]
     paths_temp <<- stri_paste(paths_temp, collapse = '/')
     imagepath <<- paths_temp
-    #print('imagepath ------------------------------------------------------------------------------------')
-    #print(stri_paste(imagepath, collapse = '/'))
     if (length(imagepath) > 0) {
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       imgsfiles = dir(stri_paste(imagepath, collapse = '/'))
@@ -764,23 +663,14 @@ server = function(input, output, session) {
     return()
   })
   
-  
   patient_list_update_demo = reactive({
-    #req(input$mask_image$datapath > 0)
-    #print('test this::::')
-    #print(length(paths_to_nii_))
     req(length(paths_to_nii_demo_) > 0)
     input$dir2_demo$datapath
     input$mask_image_demo$datapath
-    #imagepath <<- mdat_path()
     paths_temp = unlist(str_split(paths_to_nii_demo_[1], pattern = '/'))
-    #print('zzzzzzzzssssssss:')
-    #print(paths_temp)
     paths_temp = paths_temp[-length(paths_temp)]
     paths_temp <<- stri_paste(paths_temp, collapse = '/')
     imagepath_demo <<- paths_temp
-    #print('imagepath ------------------------------------------------------------------------------------')
-    #print(stri_paste(imagepath, collapse = '/'))
     if (length(imagepath_demo) > 0) {
       suffix = "_2bk-baseline_con_3mm.nii.gz"
       imgsfiles = dir(stri_paste(imagepath_demo, collapse = '/'))
@@ -792,7 +682,6 @@ server = function(input, output, session) {
     return()
   })
   
-  
   output$results_image = renderPlot({
     req(input$run)
     suffix = "_2bk-baseline_con_3mm.nii.gz"
@@ -801,12 +690,7 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    #print('BIG debug')
-    #print("IMAGE PATH:")
-    #print(imagepath)
     imagepath <<- stri_paste(imagepath, collapse = '/')
-    #print("NEXT")
-    #print(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     imgs = readnii(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
@@ -819,16 +703,10 @@ server = function(input, output, session) {
     colnames(voxels) <- c("x", "y", "z")
     z_range = unique(voxels[, 3])
     z_show_slices = z_range[seq(10, 40, by = 2)]
-    #print('BIG debug')
-    #print("IMAGE PATH:")
-    #print(imagepath) imagepath
     imagepath_demo <<- stri_paste(imagepath_demo, collapse = '/')
-    #print("NEXT")
-    #print(paste(imagepath, paste0(input$select_patient_to_explore, suffix), sep = '/'))
     imgs = readnii(paste(imagepath_demo, paste0(input$select_patient_to_explore_demo, suffix), sep = '/'))
     image(imgs, z = z_show_slices, plot.type = "single")
   }, bg = 'black')
-  
 }
 
 shinyApp(ui = ui, server = server)
