@@ -136,21 +136,27 @@ ui = fluidPage(
                column(width = 5,
                       introBox(
                         wellPanel(
-                          h5('Data sets for the demo. Follow the demo for further instructions.'),
+                          h5('Data sets for the demo. Click `Start Demo` for further instructions.
+                             The mask image and brain scans directory are zipped, so they must be unzipped before
+                             being uploaded.'),
                           introBox(
                             downloadButton('download_mask', 'Download mask image'),
                             data.step = 4, data.intro = 'Click download. Find the download in your computer.
-                            In the next step we will upload this file'
+                            Right click the file and extract the file contents. Then, select the file with extension
+                            .nii and upload it.'
                           ),
                           introBox(
                             downloadButton('download_covars', 'Download covariates'),
                             data.step = 6, data.intro = 'Download the covariates and clinical variables
-                            data set.'
+                            data set. The file you download has the extension .csv and does not require any other 
+                            processing to be uploaded.'
                           ),
                           introBox(
                             downloadButton('download_brain_scans', 'Download brain scans directory'),
                             data.step = 8, data.intro = 'Download the directory with each brain scan file 
-                            for the individuals of interest.'
+                            for the individuals of interest. This file is zipped. Extract it like you did the 
+                            first file. The file should contain 10 .nii.gz files. Select all of them by selecting all
+                            the files, and ckick OK.'
                           ),
                         ),
                         data.step = 3, data.intro = 'Here you will download and prepare the data you will need
@@ -184,7 +190,8 @@ ui = fluidPage(
                        accept = c(".nii")
                      ), data.step = 5, data.intro = 'Upload the data set you just downloaded by
                      navigating to it in the file explorer that appears when you click the button. When
-                     the file is successfuly uploaded, the blue bar will fill up.'
+                     the file is successfuly uploaded, the blue bar will fill up. Remember to extract the
+                     .zip file you downloaded before attempting to upload the file.'
                    ),
                    introBox(
                      fileInput(
@@ -193,7 +200,8 @@ ui = fluidPage(
                        multiple = TRUE,
                        accept = c(".csv")
                      ), data.step = 7, data.intro = 'Just like in the last data upload, click the 
-                     button to navigate to the file on your computer to upload it to the program.'
+                     button to navigate to the file on your computer to upload it to the program. The
+                     file should have the extension .csv.'
                    ),
                    introBox(
                      fileInput('dir2_demo',
@@ -202,7 +210,8 @@ ui = fluidPage(
                                accept = c()
                      ), data.step = 9, data.intro = 'This time you have to upload the entire directory
                      you downloaded, so navigate to the location, but select all the files you just downloaded
-                     and click ok.'
+                     and click ok. You should have selected 10 files with the extension .nii.gz. Remember to extract
+                     the .zip archive and navigate into the directory before selecting files to upload.'
                    )
                  ), data.step = 2, data.intro = 'In this section, you will load the mask image data,
                  the outcome variables a clinical variables data, and choose all individuals\' brain scan files from a directory. 
