@@ -330,7 +330,7 @@ server = function(input, output, session) {
     contentType = 'application/zip'
   )
   
-  BioStats_phenos = read.csv('data_demo/BioStats_phenos_rest_nback_include.csv')
+  BioStats_phenos = read.csv('data_demo/BioStats_phenos_demo.csv')
   output$download_covars <- downloadHandler(
     filename = function() {
       paste('BioStats_phenos-', Sys.Date(), '.csv', sep='')
@@ -345,16 +345,16 @@ server = function(input, output, session) {
       paste('imaging_data-', Sys.Date(), '.zip', sep='')
     },
     content = function(con) {
-      example_imaging_names = c('sub-NDARINV0A4ZDYNL_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0A6WVRZY_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0A9K5L4R_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0B7UGM1D_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0BXXNBH4_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0C765WK4_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0CBPKF6W_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0CCVJ39W_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0CF1U8X8_2bk-baseline_con_3mm.nii.gz',
-                                'sub-NDARINV0CKA3YZX_2bk-baseline_con_3mm.nii.gz')
+      example_imaging_names = c('sub-N1_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N2_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N3_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N4_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N5_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N6_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N7_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N8_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N9_2bk-baseline_con_3mm.nii.gz',
+                                'sub-N10_2bk-baseline_con_3mm.nii.gz')
       for (name in example_imaging_names) {
         temp_image = readnii(paste('data_demo', name, sep = '/'))
         writenii(temp_image, filename = name)
